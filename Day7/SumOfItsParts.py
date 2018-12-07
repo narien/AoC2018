@@ -1,3 +1,5 @@
+import string
+
 def findFirstList(requires, requiredBy):
     result = []
     for char in requiredBy:
@@ -27,9 +29,45 @@ def buildString(requires, requiredBy, startList, resString):
             resString = addChar(char, requiredBy, startList, resString)
     return resString
 
+def timeTick(pendingChars, requiredBy, startList, resString, workers):
+    resString[0] += 1
+    charsToDel = []
+    for char in pendingChars:
+        if pendingChars[char] == resString[0]:
+            charsToDel.append(char)
+            resString[1] = resString[1] + char
+            if char in requiredBy:
+                startList.extend(requiredBy[char])
+                startList.sort()
+    for char in charsToDel:
+        del pendingChars[char]
+    for worker in workers:
+        if workers[worker] == resString[0]:
+            workers[worker] = 0
+    return resString
+
+def findJob(requires, requiredBy, startList, resString, worker, workers):
+    char = startList.pop(0)
+    if char not in requires and char not in resString[1]:
+        executionDone = resString[0] + 61 + string.ascii_uppercase.find(char)
+        pendingChars[char] = executionDone
+        workers[worker] =  executionDone
+    elif char in requires and char not in resString[1]:
+        isReady = True
+        for reqChar in requires[char]:
+            if reqChar not in resString[1]:
+                isReady = False
+                break
+        if isReady:
+            executionDone = resString[0] + 61 + string.ascii_uppercase.find(char)
+            pendingChars[char] = executionDone
+            workers[worker] =  executionDone
+
 if __name__ == '__main__':
     requires = {}
     requiredBy = {}
+    pendingChars = {}
+    workers = {1:0, 2:0, 3:0, 4:0, 5:0} # 
     with open('input.txt', 'r') as f:
         for line in f.readlines():
             chars = line.split()
@@ -49,8 +87,15 @@ if __name__ == '__main__':
 #    print('Requires: ' + str(requires))
 
     startList = findFirstList(requires, requiredBy)
-    resString = ""
+    resString = [-1, ""]
 
-    while len(startList):
-        resString = buildString(requires, requiredBy, startList, resString)
-    print('Result string: ' + resString)
+    while len(startList) or len(pendingChars):
+        print('startlist ' + str(startList))
+        print('pendingchars ' + str(pendingChars))
+        print('time ' + str(resString[0]) + ' resstring ' + resString[1])
+        for worker in workers:
+            if workers[worker] == 0 and len(startList):
+                findJob(requires, requiredBy, startList, resString, worker, workers)
+        resString = timeTick(pendingChars, requiredBy, startList, resString, workers)
+
+    print('Result string: ' + str(resString))
