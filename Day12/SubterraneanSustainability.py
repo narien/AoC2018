@@ -1,3 +1,6 @@
+import numpy as np
+import sys
+
 def updateState(currentState, notes):
     currentState = [0, 0, 0, 0, 0] + currentState + [0, 0, 0, 0, 0]
     newState = currentState.copy()
@@ -8,10 +11,20 @@ def updateState(currentState, notes):
             newState[i] = 0
     return newState
 
+def calcRes(i, currentState, memory):
+    startIx = memory.index(currentState)
+    halfCompleteIx = (int(sys.argv[1]) - i) % (len(memory) - startIx)
+    finalState = startIx + halfCompleteIx
+    return memory[finalState]
+
+
+
+
 
 if __name__ == '__main__':
     currentState = []
     notes = set()
+    memory = []
     with open('input.txt', 'r') as f:
         inputList = list(f.readline())
         for element in inputList:
@@ -30,13 +43,30 @@ if __name__ == '__main__':
                     elif char == '.':
                         note.append(0)
                 notes.add(str(note))
-    for _ in range(20):
-        currentState = updateState(currentState, notes)
+    stepsFromPotZero = 0
+    for i in range(int(sys.argv[1]) + 1):
+        trimmedZeros = 0
+        for i in range(len(currentState)):
+            if currentState[i] == 0:
+                trimmedZeros += 1
+            else:
+                break
+        if trimmedZeros < 5:
+            stepsFromPotZero -= (5 - trimmedZeros)
+        elif trimmedZeros > 5:
+            stepsFromPotZero += (trimmedZeros - 5)
+        currentState = np.trim_zeros(currentState)
+        if currentState in memory:
+            currentState = calcRes(i, currentState, memory)
+            break
+        else:
+            memory.append(currentState)
+            currentState = updateState(currentState, notes)
 
     plantScore = 0
     plantIx = -100
     for i in range(len(currentState)):
         if currentState[i] == 1:
-            plantScore += plantIx
+            plantScore += stepsFromPotZero + plantIx
         plantIx += 1
     print('PlantScore: ' + str(plantScore))
