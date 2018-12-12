@@ -11,15 +11,12 @@ def updateState(currentState, notes):
             newState[i] = 0
     return newState
 
-def calcRes(i, currentState, memory):
-    startIx = memory.index(currentState)
-    halfCompleteIx = (int(sys.argv[1]) - i) % (len(memory) - startIx)
-    finalState = startIx + halfCompleteIx
-    return memory[finalState]
-
-
-
-
+def calcRes(currentState, memory, trim):
+    maxIter = int(sys.argv[1])
+    firstRepeat = memory.index(currentState)
+    iterationsLeft = maxIter - len(memory)
+    offset = iterationsLeft %  (len(memory) - firstRepeat)
+    return (memory[firstRepeat + offset], trim*iterationsLeft)
 
 if __name__ == '__main__':
     currentState = []
@@ -44,10 +41,10 @@ if __name__ == '__main__':
                         note.append(0)
                 notes.add(str(note))
     stepsFromPotZero = 0
-    for i in range(int(sys.argv[1]) + 1):
+    for i in range(int(sys.argv[1])):
         trimmedZeros = 0
-        for i in range(len(currentState)):
-            if currentState[i] == 0:
+        for j in range(len(currentState)):
+            if currentState[j] == 0:
                 trimmedZeros += 1
             else:
                 break
@@ -56,17 +53,17 @@ if __name__ == '__main__':
         elif trimmedZeros > 5:
             stepsFromPotZero += (trimmedZeros - 5)
         currentState = np.trim_zeros(currentState)
+
         if currentState in memory:
-            currentState = calcRes(i, currentState, memory)
+            currentState, stepsOffset = calcRes(currentState, memory, 6)
+            stepsFromPotZero += stepsOffset
             break
         else:
             memory.append(currentState)
             currentState = updateState(currentState, notes)
 
     plantScore = 0
-    plantIx = -100
     for i in range(len(currentState)):
         if currentState[i] == 1:
-            plantScore += stepsFromPotZero + plantIx
-        plantIx += 1
+            plantScore += stepsFromPotZero + i
     print('PlantScore: ' + str(plantScore))
