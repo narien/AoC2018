@@ -14,11 +14,15 @@ def newDirection(xCoord, yCoord, direction, lastIntersection):
 def checkCrash(xCoord, yCoord, carts):
     for cart in carts:
         if cart[0] == xCoord and cart[1] == yCoord:
+            crashedCart = carts.index(cart)
+            del carts[crashedCart]
             print('Crash at: ' + str(xCoord) + ' ' + str(yCoord))
-            sys.exit()
+            return crashedCart
+    return -1
 
 def tick(carts, matrix):
-    for i in range(len(carts)):
+    i = 0
+    while i < len(carts):
         xCoord = carts[i][0]
         yCoord = carts[i][1]
         if carts[i][2] == 0:
@@ -62,8 +66,16 @@ def tick(carts, matrix):
                 cart = (xCoord, yCoord, 0, carts[i][3])
             else:
                 cart = (xCoord, yCoord, 3, carts[i][3])
-        checkCrash(xCoord, yCoord, carts)
-        carts[i] = cart
+        crashedCart = checkCrash(xCoord, yCoord, carts)
+        if crashedCart == -1:
+            carts[i] = cart
+        elif crashedCart < i:
+            del carts[i-1]
+            i -= 2
+        else:
+            del carts[i]
+            i -= 1
+        i += 1
 
 
 
@@ -90,6 +102,8 @@ if __name__ == '__main__':
     while True:
         carts.sort()
         tick(carts, matrix)
-
+        if len(carts) == 1:
+            print('Last cart: ' + str(carts[0]))
+            sys.exit()
 
 
