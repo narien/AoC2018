@@ -11,17 +11,9 @@ def updateState(currentState, notes):
             newState[i] = 0
     return newState
 
-def calcRes(currentState, memory, trim):
-    maxIter = int(sys.argv[1])
-    firstRepeat = memory.index(currentState)
-    iterationsLeft = maxIter - len(memory)
-    offset = iterationsLeft %  (len(memory) - firstRepeat)
-    return (memory[firstRepeat + offset], trim*iterationsLeft)
-
 if __name__ == '__main__':
     currentState = []
     notes = set()
-    memory = []
     with open('input.txt', 'r') as f:
         inputList = list(f.readline())
         for element in inputList:
@@ -41,7 +33,7 @@ if __name__ == '__main__':
                         note.append(0)
                 notes.add(str(note))
     stepsFromPotZero = 0
-    for i in range(int(sys.argv[1])):
+    for i in range(1000):
         trimmedZeros = 0
         for j in range(len(currentState)):
             if currentState[j] == 0:
@@ -53,17 +45,10 @@ if __name__ == '__main__':
         elif trimmedZeros > 5:
             stepsFromPotZero += (trimmedZeros - 5)
         currentState = np.trim_zeros(currentState)
-
-        if currentState in memory:
-            currentState, stepsOffset = calcRes(currentState, memory, 6)
-            stepsFromPotZero += stepsOffset
-            break
-        else:
-            memory.append(currentState)
-            currentState = updateState(currentState, notes)
+        currentState = updateState(currentState, notes)
 
     plantScore = 0
     for i in range(len(currentState)):
         if currentState[i] == 1:
-            plantScore += stepsFromPotZero + i
+            plantScore += stepsFromPotZero + i + (50000000000 - 1000)
     print('PlantScore: ' + str(plantScore))
